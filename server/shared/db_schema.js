@@ -15,6 +15,10 @@ const userSchema = new schema({
     type: String,
     required: true,
   },
+  resetPasswordCode: {
+    type: String,
+    default: "",
+  },
 });
 
 module.exports = mongoose.model("User", userSchema, "userInfo");

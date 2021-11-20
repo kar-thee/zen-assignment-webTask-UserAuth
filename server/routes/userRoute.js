@@ -1,62 +1,21 @@
 const express = require("express");
 const router = express.Router();
-const User = require("../shared/db_schema");
 
-const {
-  encryptPasswordFunc,
-  decryptPasswordFunc,
-} = require("../util/hashFunc");
+const registerControl = require("../controllers/register_control");
+const loginControl = require("../controllers/login_control");
+const forgotPasswordControl = require("../controllers/forgotPass_control");
+const resetPasswordControl = require("../controllers/resetPass_control");
 
 router.get("/", (req, res) => {
   res.send("reached user route");
 });
 
-router.post("/register", async (req, res) => {
-  const { email, name, password } = req.body;
-  try {
-    if (!email || !name || !password) {
-      return res.status(400).send({ msg: "No empty values accepted" });
-    }
+router.post("/register", registerControl);
 
-    const duplicateData = await User.findOne({ email });
-    if (duplicateData) {
-      return res.status(400).send({ msg: "Email Already exists" });
-    }
+router.post("/login", loginControl);
 
-    const hashedPassword = await encryptPasswordFunc(password);
-    const result = await User.create({ email, name, password: hashedPassword });
+router.post("/forgot-password", forgotPasswordControl);
 
-    res.send(result);
-  } catch (e) {
-    console.log(e, "err");
-    res.status(400).send({ msg: "Error in registering User" });
-  }
-});
-
-router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    if (!email || !password) {
-      return res.status(400).send({ msg: "No empty values accepted" });
-    }
-
-    const userData = await User.findOne({ email });
-    if (!userData) {
-      return res.status(400).send({ msg: "Wrong email/password" });
-    }
-
-    const hashedPassword = userData.password;
-    const passwordMatch = await decryptPasswordFunc(password, hashedPassword);
-    if (!passwordMatch) {
-      return res.status(400).send({ msg: "Wrong email/password" });
-    }
-
-    res.json({ email, id: userData._id, msg: "HiFi" });
-  } catch (e) {
-    console.log(e, "err");
-    res.status(400).send({ msg: "Error in User login" });
-  }
-});
+router.post("/resetPassword", resetPasswordControl);
 
 module.exports = router;
