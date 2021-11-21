@@ -2,6 +2,7 @@ const { v4: uuid } = require("uuid");
 //import {v4 as uuid} from uuid - es6Way (above:commonJs way)
 
 const User = require("../shared/db_schema");
+const mailerFunc = require("../util/mailerFunc");
 const { createTokenFunc } = require("../util/tokenFunc");
 
 const forgotPasswordControl = async (req, res) => {
@@ -25,6 +26,7 @@ const forgotPasswordControl = async (req, res) => {
       },
       { new: true }
     );
+
     if (result) {
       const tokenPayload = {
         email: result.email,
@@ -37,18 +39,12 @@ const forgotPasswordControl = async (req, res) => {
       // console.log(array, "arr");
 
       //(resetPassLongString)---> resetPasswordCode + jwt -sending both to client mail,
-      //so jwt canbe used to verify its expiration(1h)and
+      //so jwt canbe used to verify its expiration time(1h)and
       //also check resetcode in db in (resetpassword route)
-
-      //send string via mail to user here .
-
-      res.send({
-        msg: "check your mail for further instructions",
-        result,
-        resetPassLongString,
-      });
+      const emailResponse = await mailerFunc(result.email, resetPassLongString);
+      console.log(emailResponse, "email status response");
     }
-    // res.send({msg: "check your mail for further instructions.."});
+    res.send({ msg: "check your mail for further instructions.." });
   } catch (e) {
     console.log(e, "err");
     res.status(400).send({
